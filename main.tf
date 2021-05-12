@@ -12,7 +12,7 @@ provider "aws" {
   region = var.region
 }
 
-resource "random_uuid" "randomid" {}
+# resource "random_uuid" "randomid" {}
 
 #resource "aws_iam_user" "circleci" {
 #  name = var.user
@@ -46,7 +46,7 @@ resource "aws_s3_bucket" "app" {
     Name = "App Bucket"
   }
 
-  bucket = "${var.app}.${var.label}.${random_uuid.randomid.result}"
+  bucket = "${var.app}.${var.label}.bucket"
   acl    = "public-read"
 
   website {
