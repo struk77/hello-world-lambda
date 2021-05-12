@@ -12,6 +12,12 @@ provider "aws" {
   region = var.region
 }
 
+backend "s3" {
+  bucket = "eu-west-tf-state"
+  key    = "terraform/lambda/terraform.tfstate"
+  region = var.region
+}
+
 resource "random_uuid" "randomid" {}
 
 resource "aws_iam_user" "circleci" {
