@@ -12,33 +12,40 @@ provider "aws" {
   region = var.region
 }
 
-resource "random_uuid" "randomid" {}
+data archive_file lambda {
+  type        = "zip"
+  source_file = "lambda_function.py"
+  output_path = "lambda_function.zip"
+}
 
-resource "aws_s3_bucket" "app" {
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "iam_for_lambda"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_lambda_function" "my_lambda" {
+  filename      = data.archive_file.lambda.output_path
+  function_name = "${var.app}-lambda"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "lambda_function.lambda_handler"
+  runtime        = "python3.7"
+  memory_size    = "128"
   tags = {
-    Name = "App Bucket"
+    created-by = "terraform"
   }
-
-  bucket = "${var.app}.${var.label}.bucket"
-  acl    = "public-read"
-
-  website {
-    index_document = "index.html"
-    error_document = "error.html"
-  }
-  force_destroy = true
-
-}
-
-resource "aws_s3_bucket_object" "app" {
-  acl          = "public-read"
-  key          = "index.html"
-  bucket       = aws_s3_bucket.app.id
-  content      = file("./assets/index.html")
-  content_type = "text/html"
-
-}
-
-output "Endpoint" {
-  value = aws_s3_bucket.app.website_endpoint
 }
